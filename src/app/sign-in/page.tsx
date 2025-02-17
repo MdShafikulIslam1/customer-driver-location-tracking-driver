@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 "use client";
 
-import { useVerifyLoginMutation } from "@/redux/api/authApi";
+import { useVerifyDeliveryAssociateLoginMutation } from "@/redux/api/authApi";
 import { loginSchema } from "@/schema";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { signIn } from "next-auth/react";
@@ -12,7 +12,10 @@ import { toast, Zoom } from "react-toastify";
 
 export default function SignIn() {
 
-  const [verifyLogin] = useVerifyLoginMutation()
+
+  const [error, setError] =useState(false)
+
+  const [deliveryAssociateVerifyLogin] = useVerifyDeliveryAssociateLoginMutation();
 
   const {
     register,
@@ -27,47 +30,48 @@ export default function SignIn() {
     //   signOut()
     // }
     try {
-      const response = await verifyLogin({
-        phone: data.phone,
+      const response = await deliveryAssociateVerifyLogin({
+        email: data.email,
         password: data.password,
-      }).unwrap()
+      }).unwrap();
 
-      console.log("login successful",response)
+      console.log("login successful", response);
+      if (!!response.success) {
+        toast.success("Successfully signed in", {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+          transition: Zoom,
+        });
 
-      toast.success('Successfully signed in', {
-        position: 'top-center',
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: 'light',
-        transition: Zoom,
-      })
-
-      await signIn('credentials', {
-        phone: data.phone,
-        password: data.password,
-        callbackUrl:"/dashboard",
-        redirect: true,
-      })
+        await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          callbackUrl: "/delivery-associate",
+          redirect: true,
+        });
+      }
     } catch (error) {
       //@ts-ignore
-      toast.error(error?.data?.message || 'something went wrong', {
-        position: 'top-center',
+      toast.error(error?.data?.message || "something went wrong", {
+        position: "top-center",
         autoClose: 2000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        theme: 'light',
+        theme: "light",
         transition: Zoom,
-      })
+      });
 
       //@ts-ignore
-      setError(error?.data?.message || 'Something went wrong')
+      setError(error?.data?.message || "Something went wrong");
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
@@ -76,7 +80,7 @@ export default function SignIn() {
           Sign In
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
+          {/* <div>
             <label className="block text-white mb-1">
               Delivery Associated ID
             </label>
@@ -91,7 +95,7 @@ export default function SignIn() {
                 {errors.deliveryAssociatedId.message}
               </p>
             )}
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-white mb-1">Email</label>

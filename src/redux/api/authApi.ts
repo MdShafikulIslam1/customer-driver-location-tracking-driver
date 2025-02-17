@@ -1,6 +1,6 @@
 import { tagTypes } from "../tagTypes/tagTypes";
 import { baseApi } from "./baseApi";
-const AUTH_URL = "/auth";
+const AUTH_URL = "/user";
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
@@ -13,25 +13,27 @@ export const authApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: [tagTypes.AUTH],
     }),
-    // user sign-in api
-    login: build.mutation({
+    verifyDeliveryAssociateLogin: build.mutation({
       query: (loginData) => ({
-        url: `${AUTH_URL}/login`,
+        url: `${AUTH_URL}/delivery-associate-verify-login`,
         method: "POST",
         body: loginData,
       }),
       invalidatesTags: [tagTypes.AUTH],
     }),
-    verifyLogin: build.mutation({
-      query: (loginData) => ({
-        url: `${AUTH_URL}/verify-login`,
-        method: "POST",
-        body: loginData,
+
+    getDeliveryAssociate: build.query({
+      query: (id: string) => ({
+        url: `/deliveryAssociate/${id}`,
+        method: "GET",
       }),
-      invalidatesTags: [tagTypes.AUTH],
+      providesTags: [tagTypes.AUTH],
     }),
   }),
 });
 
-export const { useSignUpMutation, useLoginMutation, useVerifyLoginMutation } =
-  authApi;
+export const {
+  useSignUpMutation,
+  useVerifyDeliveryAssociateLoginMutation,
+  useGetDeliveryAssociateQuery,
+} = authApi;

@@ -14,7 +14,7 @@ export const authOption: NextAuthOptions = {
       async authorize(credentials: any): Promise<any> {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+            `${process.env.NEXT_PUBLIC_API_URL}/user/delivery-login`,
             {
               method: "POST",
               body: JSON.stringify(credentials),
@@ -31,6 +31,7 @@ export const authOption: NextAuthOptions = {
           }
           const user = result.data;
           return user;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error: any) {
           throw new Error("user not found");
         }
@@ -45,6 +46,7 @@ export const authOption: NextAuthOptions = {
         token.name = user.name;
         token.role = user.role;
         token.email = user.email;
+        token.phoneNumber = user.phoneNumber;
         token.accessToken = user.accessToken;
       }
 
@@ -59,6 +61,7 @@ export const authOption: NextAuthOptions = {
         session.user.name = token.name as string;
         session.user.role = token.role as string;
         session.user.email = token.email as string;
+        session.user.phoneNumber = token.phoneNumber as string;
         session.user.accessToken = token.accessToken as string;
       }
 

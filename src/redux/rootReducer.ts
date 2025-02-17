@@ -1,10 +1,6 @@
-import modalReducer from '@/app/redux/feature/modal/modalSlice'
-import baseApi from './api/baseApi'
-import sidebarReducer from './feature/sidebar/sidebarSlice'
+import baseApi from "./api/baseApi";
 
 const reducer = {
-  modal: modalReducer,
-  sidebar: sidebarReducer,
   [baseApi.reducerPath]: baseApi.reducer,
-}
-export default reducer
+};
+export default reducer;
