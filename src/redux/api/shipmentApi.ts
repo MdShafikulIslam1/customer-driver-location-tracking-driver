@@ -5,7 +5,7 @@ export const shipmentApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     updateShipment: build.mutation({
       query: ({ data, id }) => ({
-        url: `shipment/${id}`,
+        url: `/shipment/update-shipment/${id}`,
         method: "PATCH",
         body: data,
       }),

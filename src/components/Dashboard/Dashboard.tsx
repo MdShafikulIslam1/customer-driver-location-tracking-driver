@@ -2,6 +2,8 @@
 "use client";
 
 import { socketEvents } from "@/constant";
+import { ShipmentStatus } from "@/enum";
+import { useUpdateShipmentMutation } from "@/redux/api/shipmentApi";
 import { IShipment } from "@/types";
 import { useEffect, useState } from "react";
 import ShipmentRequest from "../ShipmentRequest/ShipmentRequest";
@@ -16,6 +18,8 @@ const Dashboard = ({ deliveryAssociate, socket, setShipmentData }: Props) => {
   const [newShipmentRequest, setNewShipmentRequest] =
     useState<IShipment | null>(null);
 
+  const [updateShipment] = useUpdateShipmentMutation();
+
   useEffect(() => {
     socket.on(socketEvents.SHIPMENT_CREATED, (data: any) => {
       console.log("socket shipment created", data);
@@ -24,11 +28,25 @@ const Dashboard = ({ deliveryAssociate, socket, setShipmentData }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onAccept = () => {
+  const onAccept = async () => {
     alert("shipment accepted");
+    const updatedData = {
+      status: ShipmentStatus.deliveryAssociateAssigned,
+      deliveryAssociateId: deliveryAssociate?._id || "",
+    };
+    try {
+      const response = await updateShipment({
+        data: updatedData,
+        id: newShipmentRequest?._id,
+      }).unwrap()
+      setShipmentData(response.data);
+      setNewShipmentRequest(null);
+    } catch (error) {
+      console.error("Failed to update shipment", error);
+    }
   };
+
   const onReject = () => {
-    alert("shipment rejected");
     setNewShipmentRequest(null);
   };
 

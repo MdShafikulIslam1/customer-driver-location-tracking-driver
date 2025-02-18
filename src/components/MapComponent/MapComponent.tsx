@@ -1,5 +1,13 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
+import { ILocation } from "@/types";
+import {
+  getDistanceFromRoute,
+  getRouteLatLngs,
+  getSpeedFromRoute,
+  getTimeFromRoute,
+} from "@/utils";
 import { useGoogleMapsLoader } from "@/utils/googleApiLoader";
 import { DirectionsRenderer, GoogleMap, Marker } from "@react-google-maps/api";
 import { useEffect, useRef, useState } from "react";
@@ -14,11 +22,21 @@ const customerPosition = {
   lng: 90.26667,
 };
 
-const MapComponent = () => {
+const center = { lat: 23.7666304, lng: 90.4134656 }; // Dhaka, Bangladesh
+const MapComponent = ({
+  driverLocationChanged,
+  customerLocation,
+}: {
+  driverLocationChanged: (driverLocation: any) => void;
+  customerLocation: ILocation | null;
+}) => {
   const isLoaded = useGoogleMapsLoader();
-  const mapRef = useRef(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
 
-  const [directions, setDirections] = useState(null);
+  console.log("customer location in map component", customerLocation);
+
+  const [directions, setDirections] =
+    useState<google.maps.DirectionsResult | null>(null);
   const [driverLocation, setDriverLocation] = useState<{
     lat: number;
     lng: number;
@@ -27,14 +45,13 @@ const MapComponent = () => {
     lng: 90.3563,
   });
 
-  const onLoad = (map) => {
-    mapRef.current = map;
-
-    const bounds = new window.google.maps.LatLngBounds();
-    bounds.extend(driverLocation);
-    bounds.extend(customerPosition);
-    map.fitBounds(bounds);
-  };
+  // const onLoad = (map: google.maps.Map) => {
+  //   mapRef.current = map;
+  //   const bounds = new window.google.maps.LatLngBounds();
+  //   bounds.extend(driverLocation);
+  //   bounds.extend(customerPosition);
+  //   map.fitBounds(bounds);
+  // };
 
   const calculateRoute = () => {
     if (!isLoaded || !window.google) return;
@@ -43,8 +60,8 @@ const MapComponent = () => {
 
     directionsService.route(
       {
-        origin: driverLocation, // নতুন ড্র্যাগকৃত লোকেশন
-        destination: customerPosition, // কাস্টমার অবস্থান
+        origin: driverLocation as ILocation, // নতুন ড্র্যাগকৃত লোকেশন
+        destination: customerLocation as ILocation, // কাস্টমার অবস্থান
         travelMode: window.google.maps.TravelMode.DRIVING,
         provideRouteAlternatives: true,
         unitSystem: window.google.maps.UnitSystem.METRIC,
@@ -61,64 +78,27 @@ const MapComponent = () => {
   };
 
   useEffect(() => {
-    calculateRoute(); // ড্রাইভারের লোকেশন চেঞ্জ হলে নতুন রুট জেনারেট করবো
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driverLocation]); // যখনই ড্রাইভার লোকেশন পরিবর্তন হবে, নতুন রুট তৈরি হবে
-
-  const getDistanceFromRoute = (directions) => {
-    if (directions) {
-      const route = directions.routes[0];
-      const distance = route.legs[0].distance.text;
-      return distance;
+    if (customerLocation) {
+      calculateRoute(); // ✅ কাস্টমার লোকেশন প্রথমবার সেট হলে কল হবে
     }
-    return null;
-  };
-
-  const getTimeFromRoute = (directions) => {
-    if (directions) {
-      const route = directions.routes[0];
-      const time = route.legs[0].duration.text;
-      return time;
-    }
-    return null;
-  };
-
-  const getSpeedFromRoute = (directions) => {
-    if (directions) {
-      const route = directions.routes[0];
-      const distanceInKm = route.legs[0].distance.value / 1000; // in kilometers
-      const durationInMinutes = route.legs[0].duration.value / 60; // in minutes
-      const speed = distanceInKm / (durationInMinutes / 60); // speed in km/h
-      return speed.toFixed(2); // speed in km/h
-    }
-    return null;
-  };
-
-  // Extract directions steps (turn by turn instructions)
-  const getDirectionsSteps = (directions) => {
-    if (directions) {
-      const steps = directions.routes[0].legs[0].steps;
-      return steps.map((step, index) => ({
-        instruction: step.instructions,
-        distance: step.distance.text,
-        duration: step.duration.text,
-      }));
-    }
-    return [];
-  };
+    driverLocationChanged(driverLocation); // ✅ ড্রাইভার লোকেশন চেঞ্জ হলে কল হবে
+  }, [driverLocation, customerLocation]); // ✅ দুই ক্ষেত্রেই কল হবে
 
   const distance = getDistanceFromRoute(directions);
   const time = getTimeFromRoute(directions);
   const speed = getSpeedFromRoute(directions);
-  const steps = getDirectionsSteps(directions);
+  // const steps = getDirectionsSteps(directions);
+
+  const latAndlngs = getRouteLatLngs(directions)
+  console.log(latAndlngs)
 
   return (
     <div className="bg-slate-200">
       {isLoaded ? (
         <GoogleMap
-          onLoad={onLoad}
+          // onLoad={onLoad}
           mapContainerStyle={containerStyle}
-          center={driverLocation}
+          center={center}
           zoom={10}
         >
           {/* নতুন রুট */}
@@ -131,9 +111,6 @@ const MapComponent = () => {
               }}
             />
           )}
-
-          {distance && <div>Distance: {distance}</div>}
-
           {/* ড্রাইভার মার্কার */}
           <Marker
             opacity={1}
@@ -151,13 +128,15 @@ const MapComponent = () => {
           />
 
           {/* কাস্টমার মার্কার */}
-          <Marker
-            opacity={1}
-            zIndex={999}
-            position={customerPosition}
-            label={"Customer"}
-            title="Customer's current location"
-          />
+          {customerLocation && (
+            <Marker
+              opacity={1}
+              zIndex={999}
+              position={customerLocation}
+              label={"Customer"}
+              title="Customer's current location"
+            />
+          )}
         </GoogleMap>
       ) : (
         <div>Loading Google Map...</div>
