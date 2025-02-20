@@ -8,7 +8,6 @@ const MovingMarker = ({
 }: {
   latsAndLngs: { lat: number; lng: number }[];
 }) => {
-
   const [movingMarkerPosition, setMovingMarkerPosition] = useState<any | null>(
     null
   );
@@ -25,7 +24,7 @@ const MovingMarker = ({
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude, speed } = position.coords;
-        console.log("object",latitude,longitude, speed);
+        console.log("object", latitude, longitude, speed);
         setCurrentPosition({ lat: latitude, lng: longitude });
       },
       (error) => {
@@ -39,24 +38,6 @@ const MovingMarker = ({
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-    // if (latsAndLngs?.length === 0) return;
-
-    // let currentIndex = 0; // Start from the first point
-
-    // const interval = setInterval(() => {
-    //   if (currentIndex < latsAndLngs.length) {
-    //     const updatedLatLng = latsAndLngs[currentIndex];
-
-    //     // Update the position of the origin marker
-    //     setMovingMarkerPosition(updatedLatLng);
-
-    //     currentIndex++;
-    //   } else {
-    //     clearInterval(interval); // Stop once we reach the end of the path
-    //   }
-    // }, 500);
-
-    // return () => clearInterval(interval);
   }, [latsAndLngs]);
   return (
     <div>

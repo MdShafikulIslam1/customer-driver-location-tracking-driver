@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+import { ILocation } from "@/types";
 import polyline from "@mapbox/polyline";
 export const getDistanceFromRoute = (
   directions: google.maps.DirectionsResult | null
@@ -51,7 +54,6 @@ export const getDirectionsSteps = (
 export const getRouteLatLngs = (
   directions: google.maps.DirectionsResult | null
 ) => {
-  console.log("get lat and lngs from ", directions);
   if (!directions) return [];
 
   const route = directions?.routes[0];
@@ -72,4 +74,32 @@ export const getRouteLatLngs = (
   });
 
   return decodedPoints;
+};
+
+export const calculateRoute = (
+  isLoaded: boolean,
+  driverLocation: ILocation,
+  customerLocation: ILocation,
+  setDirections: any
+) => {
+  if (!isLoaded || !window.google) return;
+
+  const directionsService = new window.google.maps.DirectionsService();
+
+  directionsService.route(
+    {
+      origin: driverLocation as ILocation,
+      destination: customerLocation as ILocation,
+      travelMode: window.google.maps.TravelMode.DRIVING,
+      provideRouteAlternatives: true,
+      unitSystem: window.google.maps.UnitSystem.METRIC,
+    },
+    (result, status) => {
+      if (status === window.google.maps.DirectionsStatus.OK) {
+        setDirections(result);
+      } else {
+        console.error("Directions request failed: " + status);
+      }
+    }
+  );
 };

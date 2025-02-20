@@ -29,7 +29,6 @@ const Dashboard = ({ deliveryAssociate, socket, setShipmentData }: Props) => {
   }, []);
 
   const onAccept = async () => {
-    alert("shipment accepted");
     const updatedData = {
       status: ShipmentStatus.deliveryAssociateAssigned,
       deliveryAssociateId: deliveryAssociate?._id || "",

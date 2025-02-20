@@ -1,27 +1,24 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
 import { ILocation } from "@/types";
 import {
+  calculateRoute,
   getDistanceFromRoute,
-  getRouteLatLngs,
   getSpeedFromRoute,
-  getTimeFromRoute,
+  getTimeFromRoute
 } from "@/utils";
 import { useGoogleMapsLoader } from "@/utils/googleApiLoader";
 import { DirectionsRenderer, GoogleMap, Marker } from "@react-google-maps/api";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const containerStyle = {
   width: "100%",
   height: "600px",
 };
-
-const customerPosition = {
-  lat: 23.858334,
-  lng: 90.26667,
-};
-
 const center = { lat: 23.7666304, lng: 90.4134656 }; // Dhaka, Bangladesh
 const MapComponent = ({
   driverLocationChanged,
@@ -31,9 +28,7 @@ const MapComponent = ({
   customerLocation: ILocation | null;
 }) => {
   const isLoaded = useGoogleMapsLoader();
-  const mapRef = useRef<google.maps.Map | null>(null);
-
-  console.log("customer location in map component", customerLocation);
+  // const mapRef = useRef<google.maps.Map | null>(null);
 
   const [directions, setDirections] =
     useState<google.maps.DirectionsResult | null>(null);
@@ -53,44 +48,46 @@ const MapComponent = ({
   //   map.fitBounds(bounds);
   // };
 
-  const calculateRoute = () => {
-    if (!isLoaded || !window.google) return;
-
-    const directionsService = new window.google.maps.DirectionsService();
-
-    directionsService.route(
-      {
-        origin: driverLocation as ILocation, // নতুন ড্র্যাগকৃত লোকেশন
-        destination: customerLocation as ILocation, // কাস্টমার অবস্থান
-        travelMode: window.google.maps.TravelMode.DRIVING,
-        provideRouteAlternatives: true,
-        unitSystem: window.google.maps.UnitSystem.METRIC,
-      },
-      (result, status) => {
-        if (status === window.google.maps.DirectionsStatus.OK) {
-          console.log("result", result);
-          setDirections(result);
-        } else {
-          console.error("Directions request failed: " + status);
-        }
-      }
-    );
-  };
-
   useEffect(() => {
     if (customerLocation) {
-      calculateRoute(); // ✅ কাস্টমার লোকেশন প্রথমবার সেট হলে কল হবে
+      calculateRoute(isLoaded, driverLocation, customerLocation, setDirections);
     }
-    driverLocationChanged(driverLocation); // ✅ ড্রাইভার লোকেশন চেঞ্জ হলে কল হবে
-  }, [driverLocation, customerLocation]); // ✅ দুই ক্ষেত্রেই কল হবে
+    driverLocationChanged(driverLocation);
+  }, [driverLocation, customerLocation]);
 
   const distance = getDistanceFromRoute(directions);
   const time = getTimeFromRoute(directions);
   const speed = getSpeedFromRoute(directions);
   // const steps = getDirectionsSteps(directions);
 
-  const latAndlngs = getRouteLatLngs(directions)
-  console.log(latAndlngs)
+  // automatic driver location changed
+
+  // useEffect(() => {
+  //   if (!navigator.geolocation) {
+  //     console.error("Geolocation is not supported by this browser.");
+  //     alert("Geolocation is not supported by this browser.");
+  //     return;
+  //   }
+  
+  //   const watchId = navigator.geolocation.watchPosition(
+  //     (position) => {
+  //       const { latitude, longitude } = position.coords;
+  //       setDriverLocation({ lat: latitude, lng: longitude });
+  //       driverLocationChanged({ lat: latitude, lng: longitude }); // Notify parent component
+  //     },
+  //     (error) => {
+  //       console.error("Error getting location:", error);
+  //     },
+  //     {
+  //       enableHighAccuracy: true, // Use GPS for better accuracy
+  //       timeout: 10000,
+  //       maximumAge: 0,
+  //     }
+  //   );
+  
+  //   return () => navigator.geolocation.clearWatch(watchId); // Cleanup function
+  // }, []);
+  
 
   return (
     <div className="bg-slate-200">

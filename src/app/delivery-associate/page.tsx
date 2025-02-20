@@ -18,8 +18,6 @@ const DeliveryAssociatePage = () => {
   const userId = session?.data?.user?._id as string;
   const [shipmentData, setShipmentData] = useState<IShipment | null>(null);
 
-  console.log("shipment data",shipmentData)
-
   const { data, isLoading } = useGetDeliveryAssociateQuery(userId, {
     skip: !userId,
   });
@@ -63,13 +61,10 @@ const DeliveryAssociatePage = () => {
  // ✅ shipmentData থাকলে কাস্টমার লোকেশন সেট করুন
  const customerLocation = shipmentData?._id ? shipmentData.customerLocation : null;
 
- console.log("shipmentData after accepted",shipmentData)
- console.log("customer location in delivery associated page",customerLocation)
-
   return (
     <div className="grid grid-cols-4">
       {/* delivery details */}
-      <div>
+      <div className="col-span-4 md:col-span-1">
         <Dashboard
           socket={socket}
           deliveryAssociate={deliveryAssociate}
@@ -78,7 +73,7 @@ const DeliveryAssociatePage = () => {
       </div>
       {/* show google map in UI */}
       {/* Google Map */}
-      <div className="col-span-3 h-screen">
+      <div className="col-span-4 md:col-span-3 h-screen">
         <MapComponent driverLocationChanged={driverLocationChanged}  customerLocation={customerLocation} />
       </div>
     </div>
