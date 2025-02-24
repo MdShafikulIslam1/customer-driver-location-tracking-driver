@@ -47,6 +47,7 @@ const DeliveryAssociatePage = () => {
   // driver location change event
   // GPS changed for driver
   const driverLocationChanged = (driverLocation: ILocation) => {
+    console.log("driverLocationChanged handler ",driverLocation)
     if (deliveryAssociate?._id) {
       const data = {
         id: deliveryAssociate?._id,

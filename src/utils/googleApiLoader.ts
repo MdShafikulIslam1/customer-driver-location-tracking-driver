@@ -3,6 +3,7 @@ import { useJsApiLoader } from "@react-google-maps/api";
 // Utility function to load Google Maps API
 const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = [
   "places",
+  "geometry",
 ];
 export const useGoogleMapsLoader = () => {
   const { isLoaded } = useJsApiLoader({
