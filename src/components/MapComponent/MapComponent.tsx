@@ -28,15 +28,46 @@ const MapComponent = ({
   const isLoaded = useGoogleMapsLoader();
   const [directions, setDirections] =
     useState<google.maps.DirectionsResult | null>(null);
-  const [driverLocation, setDriverLocation] = useState<ILocation>({
-    lat: 23.685,
-    lng: 90.3563,
-  });
+  // const [driverLocation, setDriverLocation] = useState<ILocation>({
+  //   lat: 23.685,
+  //   lng: 90.3563,
+  // });
 
-  console.log("directions updated in real-time",directions)
-  console.log("da location updated in real-time",driverLocation)
+  // Initial state with null
+  const [driverLocation, setDriverLocation] = useState<ILocation | null>(null);
+
+  console.log("directions updated in real-time", directions);
+  console.log("da location updated in real-time", driverLocation);
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // / Fetch driver's initial location
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      alert("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    // Get initial position
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const newLocation = { lat: latitude, lng: longitude };
+        setDriverLocation(newLocation);
+        driverLocationChanged(newLocation);
+      },
+      (error) => {
+        console.error("Error getting initial location:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once when component mounts
 
   // Automatic driver location tracking
   useEffect(() => {
@@ -62,7 +93,12 @@ const MapComponent = ({
         }
         debounceTimeout.current = setTimeout(() => {
           if (customerLocation) {
-            calculateRoute(isLoaded, newLocation, customerLocation, setDirections);
+            calculateRoute(
+              isLoaded,
+              newLocation,
+              customerLocation,
+              setDirections
+            );
           }
         }, 1000); // 1-second delay
       },
@@ -82,15 +118,15 @@ const MapComponent = ({
         clearTimeout(debounceTimeout.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerLocation, isLoaded]);
 
   // Recalculate route when driverLocation or customerLocation changes
-  useEffect(() => {
-    if (customerLocation) {
-      calculateRoute(isLoaded, driverLocation, customerLocation, setDirections);
-    }
-  }, [driverLocation, customerLocation, isLoaded]);
+  // useEffect(() => {
+  //   if (customerLocation) {
+  //     calculateRoute(isLoaded, driverLocation, customerLocation, setDirections);
+  //   }
+  // }, [driverLocation, customerLocation, isLoaded]);
 
   const distance = getDistanceFromRoute(directions);
   const time = getTimeFromRoute(directions);
@@ -99,11 +135,7 @@ const MapComponent = ({
   return (
     <div className="bg-slate-200">
       {isLoaded ? (
-        <GoogleMap
-          mapContainerStyle={containerStyle}
-          center={center}
-          zoom={10}
-        >
+        <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={10}>
           {directions && (
             <DirectionsRenderer
               directions={directions}
@@ -113,13 +145,15 @@ const MapComponent = ({
               }}
             />
           )}
-          <Marker
-            opacity={1}
-            zIndex={999}
-            position={driverLocation}
-            label={"Driver"}
-            title="Driver's current location"
-          />
+          {driverLocation && (
+            <Marker
+              opacity={1}
+              zIndex={999}
+              position={driverLocation}
+              label={"Driver"}
+              title="Driver's current location"
+            />
+          )}
           {customerLocation && (
             <Marker
               opacity={1}
